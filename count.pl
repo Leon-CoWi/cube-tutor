@@ -1,13 +1,10 @@
 % count.pl
-% Counts how much is in the project: predicates, facts, rules and queries.
-% Handy for the report. To use it: load session.pl, load this, then type: count_all.
+% Counts predicates, facts, rules and queries in the project (for the report).
+% Use: load session.pl, load this, then type count_all.
+
 :- ensure_loaded(session).
 
-% clause_info(-File, -Name/Arity, -Kind)
-% One row for every clause that is written in one of our project files.
-% Kind is fact or rule.
-% (Facts built while the file loads, like the distance tables, do not
-% belong to a file, so they are not counted.)
+% clause_info/3: one row for every clause written in a project file (fact or rule).
 clause_info(File, Name/Arity, Kind) :-
     project_dir(Dir),
     current_predicate(Name/Arity),
@@ -20,12 +17,10 @@ clause_info(File, Name/Arity, Kind) :-
     \+ sub_atom(File, _, _, 0, 'count.pl'),
     (   Body == true -> Kind = fact ; Kind = rule ).
 
-% test_name(+Name)
-% True if the predicate is a test (its name starts with test_).
+% test_name(Name): true if the name starts with test_.
 test_name(Name) :- sub_atom(Name, 0, _, _, test_).
 
-% user_query(+Name)
-% The predicates a person types at the prompt (not tests).
+% user_query/1: the predicates a person types at the prompt.
 user_query(start).
 user_query(explain).
 user_query(explain_why).
@@ -35,8 +30,7 @@ user_query(Name) :- sub_atom(Name, 0, _, _, solve_), \+ test_name(Name).
 user_query(Name) :- sub_atom(Name, _, _, 0, '_report'), \+ test_name(Name).
 user_query(Name) :- sub_atom(Name, _, _, 0, '_demo'), \+ test_name(Name).
 
-% report_file(+File, +Rows)
-% Prints one line for one file: how many predicates, facts and rules.
+% report_file(File, Rows): prints how many predicates, facts and rules one file has.
 report_file(File, Rows) :-
     findall(P, member(File-P-_, Rows), Ps0),
     sort(Ps0, Ps),
@@ -48,9 +42,7 @@ report_file(File, Rows) :-
     file_base_name(File, Base),
     format("~w: ~d predicates, ~d facts, ~d rules~n", [Base, NP, NF, NR]).
 
-% count_all
-% Prints one line per file, then the totals, then how many queries there are:
-% queries a user types, and test queries.
+% count_all: prints each file, the totals, and the number of queries.
 count_all :-
     findall(File-Pred-Kind, clause_info(File, Pred, Kind), Rows),
     findall(File, member(File-_-_, Rows), Fs0),
